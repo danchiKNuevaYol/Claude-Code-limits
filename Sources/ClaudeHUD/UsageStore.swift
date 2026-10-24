@@ -75,12 +75,19 @@ enum Fmt {
         return "\(m)м"
     }
 
-    /// «16:20» если сегодня, иначе «14 июл, 03:00»
+    /// «16:20» сегодня, «завтра 02:40», иначе «14 июл, 03:00»
     static func clock(_ date: Date?) -> String? {
         guard let date else { return nil }
         let f = DateFormatter()
         f.locale = Locale(identifier: "ru_RU")
-        f.dateFormat = Calendar.current.isDateInToday(date) ? "HH:mm" : "d MMM, HH:mm"
+        let cal = Calendar.current
+        if cal.isDateInToday(date) {
+            f.dateFormat = "HH:mm"
+        } else if cal.isDateInTomorrow(date) {
+            f.dateFormat = "'завтра' HH:mm"
+        } else {
+            f.dateFormat = "d MMM, HH:mm"
+        }
         return f.string(from: date)
     }
 

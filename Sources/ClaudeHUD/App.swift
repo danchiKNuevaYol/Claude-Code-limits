@@ -23,12 +23,25 @@ final class HUDPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 }
 
+/// Плашка с меню по правому клику — на случай, если иконку в строке меню
+/// не видно (на MacBook с вырезом лишние значки прячутся за ним).
+final class HUDHostingView: NSHostingView<HUDView> {
+    var contextMenu: NSMenu?
+    override func rightMouseDown(with event: NSEvent) {
+        if let m = contextMenu {
+            NSMenu.popUpContextMenu(m, with: event, for: self)
+        } else {
+            super.rightMouseDown(with: event)
+        }
+    }
+}
+
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     let store = UsageStore()
     let settings = HUDSettings()
     private var panel: HUDPanel!
-    private var hosting: NSHostingView<HUDView>!
+    private var hosting: HUDHostingView!
     private var statusItem: NSStatusItem!
     private let notifier = Notifier()
 
@@ -72,7 +85,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func setupPanel() {
         panel = HUDPanel()
-        hosting = NSHostingView(rootView: HUDView(store: store, settings: settings))
+        hosting = HUDHostingView(rootView: HUDView(store: store, settings: settings))
+        let ctx = NSMenu()
+        ctx.delegate = self              // то же меню, что и в строке меню
+        hosting.contextMenu = ctx
         panel.contentView = hosting
         panel.ignoresMouseEvents = clickThrough
 

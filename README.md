@@ -44,15 +44,15 @@
 
 ### Из исходников
 ```bash
-git clone https://github.com/<you>/ClaudeHUD.git
-cd ClaudeHUD
+git clone https://github.com/danchiKNuevaYol/Claude-Code-limits.git
+cd Claude-Code-limits
 ./build.sh install
 ```
 Для быстрой проверки без сборки .app: `swift run`.
 
 ## Управление
 
-Всё — через иконку с двумя полосками в строке меню:
+Всё — через иконку с двумя полосками в строке меню **или правым кликом по самой плашке** (удобно, если иконка спряталась за вырезом экрана):
 
 | Пункт | Что делает |
 |---|---|
