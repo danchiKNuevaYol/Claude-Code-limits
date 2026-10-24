@@ -17,73 +17,73 @@ final class HUDSettings: ObservableObject {
     }
 }
 
-/// Цвет полосы: спокойно → предупреждение → почти всё.
+/// Полоса белая, как в системном стиле. Цвет появляется, только когда пора волноваться.
 func levelColor(_ pct: Double) -> Color {
     switch pct {
-    case ..<60:  return Color(red: 0.42, green: 0.85, blue: 0.55)
-    case ..<85:  return Color(red: 1.00, green: 0.78, blue: 0.30)
+    case ..<80:  return Color.primary.opacity(0.92)
+    case ..<95:  return Color(red: 1.00, green: 0.70, blue: 0.30)
     default:     return Color(red: 1.00, green: 0.42, blue: 0.38)
     }
 }
 
 struct Bar: View {
     let value: Double          // 0...100
-    var marker: Double? = nil  // метка темпа: сколько времени окна прошло, 0...100
-    var height: CGFloat = 6
+    var height: CGFloat = 8
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                Capsule().fill(Color.primary.opacity(0.14))
-                Capsule()
-                    .fill(levelColor(value))
-                    .frame(width: max(height, geo.size.width * min(1, value / 100)))
-                if let m = marker {
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(Color.primary.opacity(0.85))
-                        .frame(width: 2, height: height + 4)
-                        .offset(x: geo.size.width * min(1, max(0, m / 100)) - 1)
+                Capsule().fill(Color.primary.opacity(0.16))
+                if value > 0 {
+                    Capsule()
+                        .fill(levelColor(value))
+                        .frame(width: max(height, geo.size.width * min(1, value / 100)))
                 }
             }
-            .frame(height: geo.size.height)
         }
         .frame(height: height)
         .animation(.easeOut(duration: 0.4), value: value)
     }
 }
 
+/// Как на референсе:
+///   Заголовок
+///   ████████░░░░░░░░░░
+///   37% · сброс через 4ч 48м · 16:20
 struct WindowRow: View {
     let title: String
     let window: UsageWindow?
     let length: TimeInterval
     let now: Date
-    var large = false          // в меню шрифт крупнее, чем на плашке
+    var large = false          // в меню чуть крупнее, чем на плашке
+
+    private var detail: String {
+        guard let w = window else { return "—" }
+        let pct = Fmt.percent(w.utilization)
+        if let left = Fmt.countdown(to: w.resetsAt, from: now) {
+            return "\(pct) · сброс через \(left) · \(Fmt.clock(w.resetsAt) ?? "")"
+        }
+        // Окно ещё не началось — сервер не присылает время сброса
+        return w.utilization < 1 ? "\(pct) · начнётся с первого сообщения" : pct
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: large ? 6 : 4) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(title)
-                    .font(.system(size: large ? 13 : 11, weight: .semibold))
-                    .foregroundStyle(.primary)
-                Spacer(minLength: 8)
-                Text(window.map { Fmt.percent($0.utilization) } ?? "—")
-                    .font(.system(size: large ? 14 : 13, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(window.map { levelColor($0.utilization) } ?? Color.secondary)
-            }
-            Bar(value: window?.utilization ?? 0,
-                marker: window?.elapsedPercent(length: length, now: now),
-                height: large ? 7 : 6)
-            if let w = window, let left = Fmt.countdown(to: w.resetsAt, from: now) {
-                Text("сброс через \(left) · \(Fmt.clock(w.resetsAt) ?? "")")
-                    .font(.system(size: large ? 11 : 10))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            if let note = window?.paceNote(length: length, now: now) {
+        VStack(alignment: .leading, spacing: large ? 8 : 6) {
+            Text(title)
+                .font(.system(size: large ? 14 : 12, weight: .semibold))
+                .foregroundStyle(.primary)
+            Bar(value: window?.utilization ?? 0, height: large ? 9 : 7)
+            Text(detail)
+                .font(.system(size: large ? 12 : 10.5))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+            // Прогноз показываем, только если лимит кончится раньше сброса
+            if let note = window?.paceNote(length: length, now: now), note.warn {
                 Text(note.text)
-                    .font(.system(size: large ? 11 : 10))
+                    .font(.system(size: large ? 12 : 10.5))
                     .monospacedDigit()
-                    .foregroundStyle(note.warn ? Color.orange : Color.secondary)
+                    .foregroundStyle(Color(red: 1.00, green: 0.70, blue: 0.30))
             }
         }
     }
@@ -114,15 +114,15 @@ struct HUDView: View {
 
     // Подробный вид — как в твоём скриншоте, только всегда на экране
     private var full: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             WindowRow(title: "Сессия · 5 ч", window: store.snapshot?.fiveHour,
                       length: WindowLength.fiveHour, now: store.now)
             WindowRow(title: "Неделя", window: store.snapshot?.sevenDay,
                       length: WindowLength.week, now: store.now)
             footer
         }
-        .padding(12)
-        .frame(width: 232)
+        .padding(14)
+        .frame(width: 250)
     }
 
     // Одна строчка — занимает минимум места
@@ -148,13 +148,11 @@ struct HUDView: View {
             Text(label)
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(.white.opacity(0.6))
-            Bar(value: w?.utilization ?? 0,
-                marker: w?.elapsedPercent(length: label == "5ч" ? WindowLength.fiveHour : WindowLength.week, now: store.now),
-                height: 4).frame(width: 36)
+            Bar(value: w?.utilization ?? 0, height: 5).frame(width: 40)
             Text(w.map { Fmt.percent($0.utilization) } ?? "—")
                 .font(.system(size: 11, weight: .bold, design: .rounded))
                 .monospacedDigit()
-                .foregroundStyle(w.map { levelColor($0.utilization) } ?? .white.opacity(0.5))
+                .foregroundStyle(w.map { $0.utilization >= 80 ? levelColor($0.utilization) : Color.white } ?? Color.white.opacity(0.5))
             if let left = Fmt.countdown(to: w?.resetsAt, from: store.now) {
                 Text(left)
                     .font(.system(size: 10))

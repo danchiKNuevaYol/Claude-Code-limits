@@ -7,7 +7,7 @@ import ServiceManagement
 /// не забирает фокус. Перетаскивается мышкой, позиция запоминается.
 final class HUDPanel: NSPanel {
     init() {
-        super.init(contentRect: NSRect(x: 0, y: 0, width: 232, height: 120),
+        super.init(contentRect: NSRect(x: 0, y: 0, width: 250, height: 140),
                    styleMask: [.borderless, .nonactivatingPanel],
                    backing: .buffered, defer: false)
         level = .statusBar                       // выше обычных и «плавающих» окон
@@ -95,7 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if !panel.setFrameUsingName("ClaudeHUDPanel"), let screen = NSScreen.main {
             // По умолчанию — правый верхний угол, под строкой меню
             let v = screen.visibleFrame
-            panel.setFrameTopLeftPoint(NSPoint(x: v.maxX - 232 - 16, y: v.maxY - 12))
+            panel.setFrameTopLeftPoint(NSPoint(x: v.maxX - 250 - 16, y: v.maxY - 12))
         }
         panel.setFrameAutosaveName("ClaudeHUDPanel")
         if hudVisible { panel.orderFrontRegardless() }

@@ -17,13 +17,6 @@ struct PaceNote {
 }
 
 extension UsageWindow {
-    /// Сколько процентов окна по времени уже прошло (0...100).
-    func elapsedPercent(length: TimeInterval, now: Date) -> Double? {
-        guard let reset = resetsAt else { return nil }
-        let left = reset.timeIntervalSince(now)
-        return min(100, max(0, (1 - left / length) * 100))
-    }
-
     /// Линейный прогноз: если тратить так же, хватит ли до сброса.
     func paceNote(length: TimeInterval, now: Date) -> PaceNote? {
         if utilization >= 100 { return PaceNote(text: "лимит исчерпан", warn: true) }
@@ -129,7 +122,7 @@ struct UsageMenuView: View {
     @ObservedObject var store: UsageStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             WindowRow(title: "Сессия · 5 ч", window: store.snapshot?.fiveHour,
                       length: WindowLength.fiveHour, now: store.now, large: true)
             WindowRow(title: "Неделя", window: store.snapshot?.sevenDay,
