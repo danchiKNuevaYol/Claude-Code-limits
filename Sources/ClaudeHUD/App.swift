@@ -27,6 +27,8 @@ final class HUDPanel: NSPanel {
 /// не видно (на MacBook с вырезом лишние значки прячутся за ним).
 final class HUDHostingView: NSHostingView<HUDView> {
     var contextMenu: NSMenu?
+    // Плашка никогда не становится активным окном — пусть клик срабатывает сразу
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
     override func rightMouseDown(with event: NSEvent) {
         if let m = contextMenu {
             NSMenu.popUpContextMenu(m, with: event, for: self)
@@ -85,7 +87,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func setupPanel() {
         panel = HUDPanel()
-        hosting = HUDHostingView(rootView: HUDView(store: store, settings: settings))
+        hosting = HUDHostingView(rootView: HUDView(store: store, settings: settings,
+                                                   onMenu: { [weak self] in self?.showMenuAtMouse() }))
         let ctx = NSMenu()
         ctx.delegate = self              // то же меню, что и в строке меню
         hosting.contextMenu = ctx
@@ -256,6 +259,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         p.arguments = ["-c", "sleep 0.5; /usr/bin/open \"$0\"", path]
         try? p.run()
         NSApp.terminate(nil)
+    }
+    /// Меню рядом с курсором — для кнопки ⋯ на плашке.
+    private func showMenuAtMouse() {
+        guard let menu = hosting.contextMenu else { return }
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
     @objc private func quit() { NSApp.terminate(nil) }
 }

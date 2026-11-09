@@ -92,6 +92,19 @@ struct WindowRow: View {
 struct HUDView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var settings: HUDSettings
+    /// Открыть меню (кнопка ⋯ на плашке — иконку в строке меню может спрятать вырез экрана)
+    var onMenu: () -> Void = {}
+
+    private var menuButton: some View {
+        Button(action: onMenu) {
+            Image(systemName: "ellipsis.circle")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.white.opacity(0.55))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Меню")
+    }
 
     var body: some View {
         Group {
@@ -123,6 +136,7 @@ struct HUDView: View {
         }
         .padding(14)
         .frame(width: 250)
+        .overlay(alignment: .topTrailing) { menuButton.padding(10) }
     }
 
     // Одна строчка — занимает минимум места
@@ -131,6 +145,7 @@ struct HUDView: View {
             mini("5ч", store.snapshot?.fiveHour)
             Rectangle().fill(.white.opacity(0.15)).frame(width: 1, height: 14)
             mini("7д", store.snapshot?.sevenDay)
+            menuButton
             if store.error != nil {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 10))
