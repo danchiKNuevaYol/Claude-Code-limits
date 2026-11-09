@@ -184,6 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         m.addItem(login)
         m.addItem(item("О Claude HUD", #selector(about), ""))
+        m.addItem(item("Перезапустить", #selector(relaunch), ""))
         m.addItem(item("Выйти", #selector(quit), "q"))
     }
 
@@ -245,6 +246,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 attributes: [.font: NSFont.systemFont(ofSize: 11)]
             ),
         ])
+    }
+    /// Закрывается и через полсекунды открывает себя заново.
+    @objc private func relaunch() {
+        let path = Bundle.main.bundlePath
+        guard path.hasSuffix(".app") else { return }   // при `swift run` перезапускать нечего
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/bin/sh")
+        p.arguments = ["-c", "sleep 0.5; /usr/bin/open \"$0\"", path]
+        try? p.run()
+        NSApp.terminate(nil)
     }
     @objc private func quit() { NSApp.terminate(nil) }
 }
