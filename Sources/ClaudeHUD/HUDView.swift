@@ -93,7 +93,7 @@ struct HUDView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var settings: HUDSettings
     /// Открыть меню (кнопка ⋯ на плашке — иконку в строке меню может спрятать вырез экрана)
-    var onMenu: () -> Void = {}
+    var onMenu: @MainActor () -> Void = {}
 
     private var menuButton: some View {
         Button(action: onMenu) {
