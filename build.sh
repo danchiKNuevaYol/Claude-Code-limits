@@ -51,6 +51,8 @@ codesign --force --deep --sign - "$APP"
 echo "✓ Собрано: $APP"
 
 if [[ "${1:-}" == "install" ]]; then
+  # Закрываем запущенную копию, иначе `open` просто оставит старую версию
+  killall ClaudeHUD 2>/dev/null && sleep 1 || true
   rm -rf /Applications/ClaudeHUD.app
   cp -R "$APP" /Applications/
   echo "✓ Установлено в /Applications"
