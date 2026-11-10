@@ -250,20 +250,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             ),
         ])
     }
-    /// Закрывается и через полсекунды открывает себя заново.
+    /// Закрывается и открывает себя заново, когда старая копия полностью завершится.
     @objc private func relaunch() {
         let path = Bundle.main.bundlePath
         guard path.hasSuffix(".app") else { return }   // при `swift run` перезапускать нечего
+        let pid = ProcessInfo.processInfo.processIdentifier
+        // Фоновая подоболочка переживает выход приложения: ждёт, пока наш процесс
+        // исчезнет, и только потом открывает приложение снова.
+        let script = "( while /bin/kill -0 \(pid) 2>/dev/null; do /bin/sleep 0.2; done; " +
+                     "/usr/bin/open \"$0\" ) >/dev/null 2>&1 &"
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/bin/sh")
-        p.arguments = ["-c", "sleep 0.5; /usr/bin/open \"$0\"", path]
-        try? p.run()
+        p.arguments = ["-c", script, path]
+        do {
+            try p.run()
+            p.waitUntilExit()        // sh сразу выходит, ожидание остаётся в фоне
+        } catch {
+            return                   // не смогли запустить помощника — не закрываемся
+        }
         NSApp.terminate(nil)
-    }
-    /// Меню рядом с курсором — для кнопки ⋯ на плашке.
-    private func showMenuAtMouse() {
-        guard let menu = hosting.contextMenu else { return }
-        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
     @objc private func quit() { NSApp.terminate(nil) }
 }
