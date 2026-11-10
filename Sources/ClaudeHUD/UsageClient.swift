@@ -28,8 +28,8 @@ enum UsageError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noCredentials: return "Нет входа в Claude Code — запусти `claude` и залогинься"
-        case .tokenExpired:  return "Токен истёк — запусти `claude`, он обновит его"
-        case .unauthorized:  return "Токен не принят (401) — перелогинься в Claude Code"
+        case .tokenExpired:  return "Токен истёк — ⋯ → «Обновить вход»"
+        case .unauthorized:  return "Токен не принят — ⋯ → «Обновить вход»"
         case .rateLimited:   return "Слишком часто спрашиваем, подождём"
         case .http(let c):   return "Ошибка сервера: HTTP \(c)"
         case .decoding:      return "Не понял ответ сервера"

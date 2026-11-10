@@ -156,6 +156,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         m.addItem(.separator())
 
         m.addItem(item("Обновить сейчас", #selector(refresh), "r"))
+        let renew = item(store.isRenewing ? "Обновляю вход…" : "Обновить вход Claude Code", #selector(renewLogin), "")
+        renew.isEnabled = !store.isRenewing
+        m.addItem(renew)
+        let auto = item("Обновлять вход автоматически", #selector(toggleAutoRenew), "")
+        auto.state = store.autoRenew ? .on : .off
+        m.addItem(auto)
         let pct = item("Показывать проценты в строке меню", #selector(togglePercent), "")
         pct.state = showPercent ? .on : .off
         m.addItem(pct)
@@ -218,6 +224,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         panel.setFrameTopLeftPoint(NSPoint(x: v.maxX - panel.frame.width - 16, y: v.maxY - 12))
     }
     @objc private func refresh() { store.refreshNow() }
+    @objc private func renewLogin() { store.renewNow() }
+    @objc private func toggleAutoRenew() { store.autoRenew.toggle() }
     @objc private func toggleLogin() {
         do {
             if SMAppService.mainApp.status == .enabled {

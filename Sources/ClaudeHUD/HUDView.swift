@@ -178,7 +178,11 @@ struct HUDView: View {
     }
 
     @ViewBuilder private var footer: some View {
-        if let e = store.error {
+        if store.isRenewing {
+            Text("обновляю вход Claude Code…")
+                .font(.system(size: 9))
+                .foregroundStyle(.white.opacity(0.5))
+        } else if let e = store.error {
             Text(e.localizedDescription)
                 .font(.system(size: 10))
                 .foregroundStyle(.yellow.opacity(0.9))
