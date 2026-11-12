@@ -278,6 +278,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         NSApp.terminate(nil)
     }
+    /// Меню рядом с курсором — для кнопки ⋯ на плашке.
+    private func showMenuAtMouse() {
+        guard let menu = hosting.contextMenu else { return }
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+    }
     @objc private func quit() { NSApp.terminate(nil) }
 }
 
