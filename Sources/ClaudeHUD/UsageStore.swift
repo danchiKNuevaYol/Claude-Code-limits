@@ -110,7 +110,7 @@ final class UsageStore: ObservableObject {
 extension UsageStore {
     fileprivate func isLoginProblem(_ e: UsageError) -> Bool {
         switch e {
-        case .tokenExpired, .unauthorized: return true
+        case .tokenExpired, .unauthorized, .noCredentials: return true
         default: return false
         }
     }

@@ -27,7 +27,7 @@ enum UsageError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noCredentials: return "Нет входа в Claude Code — запусти `claude` и залогинься"
+        case .noCredentials: return "Не нашёл вход Claude Code — ⋯ → «Обновить вход»"
         case .tokenExpired:  return "Токен истёк — ⋯ → «Обновить вход»"
         case .unauthorized:  return "Токен не принят — ⋯ → «Обновить вход»"
         case .rateLimited:   return "Слишком часто спрашиваем, подождём"
